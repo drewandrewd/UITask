@@ -18,7 +18,7 @@ public class FieldGenerator {
         Random random = new Random();
         StringBuilder sb = new StringBuilder(10);
         for (int i = 0; i < 10; i++) {
-            sb.append(random.nextInt(10)); // 0..9
+            sb.append(random.nextInt(10));
         }
         return sb.toString();
     }

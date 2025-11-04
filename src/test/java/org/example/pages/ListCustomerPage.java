@@ -1,5 +1,6 @@
 package org.example.pages;
 
+import io.qameta.allure.Step;
 import org.example.utilities.WaitHelper;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -28,18 +29,21 @@ public class ListCustomerPage extends BasePage {
         PageFactory.initElements(driver, this);
     }
 
+    @Step("Open Customers tab")
     public ListCustomerPage clickCustomersTab() {
         waitHelper.untilToBeVisible(this.customersTab);
         this.customersTab.click();
         return this;
     }
 
+    @Step("Click First Name column")
     public ListCustomerPage clickFirstNameColumn() {
         waitHelper.untilToBeVisible(this.firstNameColumn);
         this.firstNameColumn.click();
         return this;
     }
 
+    @Step("Get list of first names")
     public List<String> getFirstNameCells() {
         waitHelper.untilToBeVisible(this.firstNameColumn);
         return firstNameCells.stream()
@@ -47,6 +51,7 @@ public class ListCustomerPage extends BasePage {
                 .collect(Collectors.toList());
     }
 
+    @Step("Check if names are sorted ascending")
     public boolean isSortedAsc() {
         List<String> firstNames = getFirstNameCells();
         List<String>  sorted = new ArrayList<>(firstNames);
@@ -54,6 +59,7 @@ public class ListCustomerPage extends BasePage {
         return firstNames.equals(sorted);
     }
 
+    @Step("Check if names are sorted descending")
     public boolean isSortedDesc() {
         List<String> firstNames = getFirstNameCells();
         List<String>  sorted = new ArrayList<>(firstNames);
@@ -61,6 +67,7 @@ public class ListCustomerPage extends BasePage {
         return firstNames.equals(sorted);
     }
 
+    @Step("Find name closest to average length")
     public String getMediumLengthOfFirstNameCell() {
         List<String> firstNames = getFirstNameCells();
         if (firstNames.isEmpty()) return null;
@@ -75,14 +82,27 @@ public class ListCustomerPage extends BasePage {
         return closestName;
     }
 
+    @Step("Find delete button by first name")
     public WebElement getDeleteBtn(String name) {
         return driver.findElement(By.xpath(
                 "//tr[td[normalize-space(text())='" + name + "']]//button[contains(text(),'Delete')]"));
     }
 
-    public ListCustomerPage deleteCustomerByName(String name) {
+    @Step("delete customer by first name")
+    public boolean deleteCustomerByName(String name) {
+        List<String> before = getFirstNameCells();
+        int beforeSize = before.size();
+
         WebElement button = getDeleteBtn(name);
         button.click();
-        return this;
+        waitHelper.untilToBeDeleted(beforeSize);
+        List<String> after = getFirstNameCells();
+
+        boolean sizeOk = after.size() == before.size() - 1;
+        boolean removedOk = !after.contains(name);
+        boolean othersOk = before.stream()
+                .filter(n -> !n.equals(name))
+                .allMatch(after::contains);
+        return sizeOk && removedOk && othersOk;
     }
 }

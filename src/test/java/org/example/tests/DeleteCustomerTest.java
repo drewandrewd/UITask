@@ -1,11 +1,24 @@
 package org.example.tests;
 
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Owner;
+import io.qameta.allure.Severity;
+import io.qameta.allure.SeverityLevel;
+import io.qameta.allure.Story;
 import org.example.pages.ListCustomerPage;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
+@Epic("Customers")
+@Feature("Delete Customer")
+@Owner("Andrei")
+@Severity(SeverityLevel.CRITICAL)
+@Story("Delete customer with name length closest to average")
+@DisplayName("Delete Customer Test")
 public class DeleteCustomerTest extends BaseTest {
 
     @Test
@@ -18,16 +31,7 @@ public class DeleteCustomerTest extends BaseTest {
         String mediumName = listCustomerPage.getMediumLengthOfFirstNameCell();
         Assertions.assertNotNull(mediumName, "Not found");
 
-        listCustomerPage.deleteCustomerByName(mediumName);
-        List<String> afterDeletingList = listCustomerPage.getFirstNameCells();
+        Assertions.assertTrue(listCustomerPage.deleteCustomerByName(mediumName), "Delete failed");
 
-        Assertions.assertEquals(initialList.size() - 1, afterDeletingList.size(), "Not found");
-        Assertions.assertFalse(afterDeletingList.contains(mediumName), "Medium name is still here");
-        initialList.stream()
-                .filter(name -> !name.equals(mediumName))
-                .forEach(name ->
-                        Assertions.assertTrue(afterDeletingList.contains(name),
-                                "Name " + name + " is still there")
-                );
     }
 }
