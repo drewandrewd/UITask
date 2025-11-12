@@ -1,0 +1,51 @@
+services:
+  selenium-hub:
+    image: selenium/hub:4.24.0
+    container_name: selenium-hub
+    ports:
+      - "4444:4444"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:4444/status"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  chrome-1:
+    image: selenium/node-chrome:4.24.0
+    shm_size: 2g
+    depends_on:
+      selenium-hub:
+        condition: service_healthy
+    environment:
+      - SE_EVENT_BUS_HOST=selenium-hub
+      - SE_EVENT_BUS_PUBLISH_PORT=4442
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+      - SE_NODE_MAX_SESSIONS=2
+      - SE_NODE_OVERRIDE_MAX_SESSIONS=true
+
+  chrome-2:
+    image: selenium/node-chrome:4.24.0
+    shm_size: 2g
+    depends_on:
+      selenium-hub:
+        condition: service_healthy
+    environment:
+      - SE_EVENT_BUS_HOST=selenium-hub
+      - SE_EVENT_BUS_PUBLISH_PORT=4442
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+      - SE_NODE_MAX_SESSIONS=2
+      - SE_NODE_OVERRIDE_MAX_SESSIONS=true
+
+  tests:
+    build: .
+    depends_on:
+      selenium-hub:
+        condition: service_healthy
+      chrome-1:
+        condition: service_started
+      chrome-2:
+        condition: service_started
+    environment:
+      - SELENIUM_URL=http://selenium-hub:4444/wd/hub
+    volumes:
+      - ~/.m2:/root/.m2
